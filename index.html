@@ -3,9 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- 
-    เราลบ <base target="_top"> ออก เพราะไม่ได้รันบน Google App Script แล้ว 
-  -->
   
   <!-- 1. Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,13 +10,19 @@
   <!-- 2. SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
-  <title>บันทึก Service มอเตอร์ไซต์ (Local)</title>
+  <title>บันทึก Service ยานพาหนะ (Local)</title>
   
   <style>
     /* เพิ่ม Font ภาษาไทยที่ดูดี */
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap');
     body {
       font-family: 'Sarabun', sans-serif;
+    }
+    /* สไตล์สำหรับปุ่มฟิลเตอร์ที่ "Active" */
+    .filter-active {
+      background-color: #2563eb; /* bg-blue-600 */
+      color: white;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -35,7 +38,7 @@
         <!-- Header -->
         <div class="text-center mb-8">
           <svg class="mx-auto h-12 w-auto text-blue-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
           </svg>
           <h1 class="text-3xl font-bold text-gray-900 mt-2">บันทึก Service</h1>
           <p class="text-gray-500">กรอกรายละเอียดการบำรุงรักษารถ</p>
@@ -43,22 +46,30 @@
         
         <!-- Form -->
         <form id="serviceForm" class="space-y-5">
+
+          <!-- NEW: Vehicle Type -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">ประเภทรถ</label>
+            <fieldset class="mt-2">
+              <div class="flex gap-4">
+                <div class="flex items-center">
+                  <input id="typeMotorcycle" name="vehicleType" type="radio" value="motorcycle" checked class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500">
+                  <label for="typeMotorcycle" class="ml-2 block text-sm text-gray-900">🏍️ มอเตอร์ไซต์</label>
+                </div>
+                <div class="flex items-center">
+                  <input id="typeCar" name="vehicleType" type="radio" value="car" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500">
+                  <label for="typeCar" class="ml-2 block text-sm text-gray-900">🚗 รถยนต์</label>
+                </div>
+              </div>
+            </fieldset>
+          </div>
           
-          <!-- รายการ -->
+          <!-- รายการ (Dynamic) -->
           <div>
             <label for="item" class="block text-sm font-medium text-gray-700">รายการบำรุงรักษา</label>
             <select id="item" name="item" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 p-3 bg-white/50">
-              <option value="" disabled selected>-- เลือกรายการ --</option>
-              <option value="น้ำมันเครื่อง">น้ำมันเครื่อง</option>
-              <option value="น้ำมันเฟืองท้าย">น้ำมันเฟืองท้าย</option>
-              <option value="ไส้กรองอากาศ">ไส้กรองอากาศ</option>
-              <option value="หัวเทียน">หัวเทียน</option>
-              <option value="ล้างชุดข้าง">ล้างชุดข้าง</option>
-              <option value="แบตเตอรี่">แบตเตอรี่</option>
-              <option value="ผ้าเบรค">ผ้าเบรค</option>
-              <option value="สายพาน">สายพาน</option>
-              <option value="น้ำยาหม้อน้ำ">น้ำยาหม้อน้ำ</option>
-              <option value="อื่นๆ">อื่นๆ (ระบุในหมายเหตุ)</option>
+              <option value="" disabled selected>-- เลือกประเภทรถก่อน --</option>
+              <!-- Options will be populated by JavaScript -->
             </select>
           </div>
           
@@ -107,9 +118,9 @@
       <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200/50 p-6 sm:p-8 mt-10 mb-10">
         
         <!-- History Header -->
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">ประวัติการบำรุงรักษา</h2>
-          <button id="reloadButton" title="โหลดข้อมูลใหม่" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+          <h2 class="text-2xl font-bold text-gray-900 flex-shrink-0">ประวัติการบำรุงรักษา</h2>
+          <button id="reloadButton" title="โหลดข้อมูลใหม่" class="sm:hidden p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <svg id="reloadIcon" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0 0v-4.992m0 0h-4.992" />
             </svg>
@@ -119,6 +130,32 @@
             </svg>
           </button>
         </div>
+
+        <!-- NEW: Filter Buttons -->
+        <div class="flex items-center gap-2 mb-6">
+          <span class="text-sm font-medium text-gray-600">แสดง:</span>
+          <div class="flex-grow flex gap-2">
+            <button id="filterAll" class="filter-btn filter-active text-sm px-3 py-1 rounded-full border border-gray-300 bg-gray-100 hover:bg-gray-200 transition-all">
+              ทั้งหมด
+            </button>
+            <button id="filterMotorcycle" class="filter-btn text-sm px-3 py-1 rounded-full border border-gray-300 bg-gray-100 hover:bg-gray-200 transition-all">
+              🏍️ มอเตอร์ไซต์
+            </button>
+            <button id="filterCar" class="filter-btn text-sm px-3 py-1 rounded-full border border-gray-300 bg-gray-100 hover:bg-gray-200 transition-all">
+              🚗 รถยนต์
+            </button>
+          </div>
+           <button id="reloadButtonDesktop" title="โหลดข้อมูลใหม่" class="hidden sm:block p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <svg id="reloadIconDesktop" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0 0v-4.992m0 0h-4.992" />
+            </svg>
+            <svg id="historyLoadingIconDesktop" class="animate-spin h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </button>
+        </div>
+
 
         <!-- History Content Container -->
         <div id="historyContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
@@ -146,7 +183,7 @@
     // --- START: Local Storage Logic ---
     
     // ตั้งชื่อ Key สำหรับ Local Storage
-    const STORAGE_KEY = 'motorcycleHistory';
+    const STORAGE_KEY = 'motorcycleHistory'; // เรายังใช้ชื่อเดิมได้
 
     /**
      * ฟังก์ชันสำหรับบันทึกข้อมูลลง Local Storage
@@ -159,8 +196,9 @@
           
           // 2. สร้างข้อมูลใหม่
           const newEntry = {
-            id: crypto.randomUUID(), // <-- NEW: เพิ่ม Unique ID
-            timestamp: new Date().toISOString(), // ใช้วันที่เวลาปัจจุบัน
+            id: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
+            vehicleType: formData.vehicleType, // <-- NEW
             item: formData.item,
             mileage: formData.mileage,
             shop: formData.shop,
@@ -199,7 +237,7 @@
     }
     
     /**
-     * NEW: ฟังก์ชันสำหรับอัปเดตข้อมูลใน Local Storage
+     * ฟังก์ชันสำหรับอัปเดตข้อมูลใน Local Storage
      */
     function updateMotorcycleService(id, formData) {
       return new Promise((resolve, reject) => {
@@ -213,6 +251,7 @@
               return {
                 id: entry.id,
                 timestamp: entry.timestamp,
+                vehicleType: formData.vehicleType, // <-- NEW
                 item: formData.item,
                 mileage: formData.mileage,
                 shop: formData.shop,
@@ -237,29 +276,87 @@
     
     // --- END: Local Storage Logic ---
     
-    
+    // --- NEW: Vehicle Data ---
+    const vehicleItems = {
+      motorcycle: [
+        'น้ำมันเครื่อง',
+        'น้ำมันเฟืองท้าย',
+        'ไส้กรองอากาศ',
+        'หัวเทียน',
+        'ล้างชุดข้าง',
+        'แบตเตอรี่',
+        'ผ้าเบรค',
+        'สายพาน',
+        'น้ำยาหม้อน้ำ',
+        'อื่นๆ'
+      ],
+      car: [
+        'น้ำมันเครื่อง',
+        'กรองน้ำมันเครื่อง',
+        'ไส้กรองอากาศ',
+        'กรองแอร์',
+        'แบตเตอรี่',
+        'ผ้าเบรค',
+        'ยางรถยนต์',
+        'น้ำยาหม้อน้ำ',
+        'หัวเทียน',
+        'เช็คช่วงล่าง',
+        'อื่นๆ'
+      ]
+    };
+
+    // --- DOM Elements ---
     const form = document.getElementById('serviceForm');
     const submitButton = document.getElementById('submitButton');
     const buttonText = document.getElementById('buttonText');
     const loadingIcon = document.getElementById('loadingIcon');
+    const cancelEditButton = document.getElementById('cancelEditButton');
     
     const reloadButton = document.getElementById('reloadButton');
     const reloadIcon = document.getElementById('reloadIcon');
     const historyLoadingIcon = document.getElementById('historyLoadingIcon');
+    
+    const reloadButtonDesktop = document.getElementById('reloadButtonDesktop');
+    const reloadIconDesktop = document.getElementById('reloadIconDesktop');
+    const historyLoadingIconDesktop = document.getElementById('historyLoadingIconDesktop');
+    
     const historyContainer = document.getElementById('historyContainer');
     const historyInitialLoading = document.getElementById('historyInitialLoading');
-    const cancelEditButton = document.getElementById('cancelEditButton'); // <-- NEW
+    const itemSelect = document.getElementById('item');
     
-    let currentEditId = null; // <-- NEW: ตัวแปรสำหรับเก็บ ID ที่กำลังแก้ไข
+    const vehicleTypeRadios = document.querySelectorAll('input[name="vehicleType"]');
+    
+    const filterAllBtn = document.getElementById('filterAll');
+    const filterMotorcycleBtn = document.getElementById('filterMotorcycle');
+    const filterCarBtn = document.getElementById('filterCar');
 
+    // --- Global State ---
+    let currentEditId = null; 
+    let currentVehicleType = 'motorcycle'; // Default
+    let currentFilter = 'all'; // Default
+    
+    // --- Event Listeners ---
+    document.addEventListener('DOMContentLoaded', () => {
+      populateItemDropdown();
+      fetchHistory();
+    });
+    
     reloadButton.addEventListener('click', fetchHistory);
-    document.addEventListener('DOMContentLoaded', fetchHistory);
-    cancelEditButton.addEventListener('click', resetFormState); // <-- NEW
+    reloadButtonDesktop.addEventListener('click', fetchHistory);
+    cancelEditButton.addEventListener('click', resetFormState);
+    
+    vehicleTypeRadios.forEach(radio => {
+      radio.addEventListener('change', handleVehicleTypeChange);
+    });
+    
+    filterAllBtn.addEventListener('click', () => handleFilterChange('all'));
+    filterMotorcycleBtn.addEventListener('click', () => handleFilterChange('motorcycle'));
+    filterCarBtn.addEventListener('click', () => handleFilterChange('car'));
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault(); 
       
-      const item = document.getElementById('item').value;
+      const item = itemSelect.value;
       const mileage = document.getElementById('mileage').value;
       
       if (!item || !mileage) {
@@ -274,21 +371,18 @@
       setLoading(true);
 
       const formData = {
+        vehicleType: currentVehicleType, // <-- NEW
         item: item,
         mileage: mileage,
         shop: document.getElementById('shop').value,
         notes: document.getElementById('notes').value,
       };
 
-      // 3. เรียกฟังก์ชัน logMotorcycleService ที่เราสร้างขึ้นมาใหม่
-      // เราใช้ async/await เพื่อให้โค้ดอ่านง่าย
       try {
         let result;
         if (currentEditId) {
-          // --- EDIT MODE ---
           result = await updateMotorcycleService(currentEditId, formData);
         } else {
-          // --- NEW ENTRY MODE ---
           result = await logMotorcycleService(formData);
         }
         handleSuccess(result);
@@ -297,23 +391,79 @@
       }
     });
 
+    // --- Form & State Functions ---
+
+    /**
+     * NEW: จัดการการเปลี่ยนประเภทรถ
+     */
+    function handleVehicleTypeChange(e) {
+      currentVehicleType = e.target.value;
+      populateItemDropdown();
+    }
+    
+    /**
+     * NEW: เติม Dropdown รายการ
+     */
+    function populateItemDropdown() {
+      const items = vehicleItems[currentVehicleType] || [];
+      itemSelect.innerHTML = ''; // Clear old options
+      
+      // Add default disabled option
+      const defaultOption = document.createElement('option');
+      defaultOption.value = "";
+      defaultOption.textContent = "-- เลือกรายการ --";
+      defaultOption.disabled = true;
+      defaultOption.selected = true;
+      itemSelect.appendChild(defaultOption);
+      
+      // Add items
+      items.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        option.textContent = item;
+        itemSelect.appendChild(option);
+      });
+    }
+    
+    /**
+     * NEW: จัดการการเปลี่ยนฟิลเตอร์
+     */
+    function handleFilterChange(filter) {
+      currentFilter = filter;
+      
+      // Update button styles
+      [filterAllBtn, filterMotorcycleBtn, filterCarBtn].forEach(btn => {
+        btn.classList.remove('filter-active', 'bg-blue-600', 'text-white', 'font-medium');
+        btn.classList.add('bg-gray-100', 'hover:bg-gray-200');
+      });
+      
+      let activeBtn = filterAllBtn;
+      if (filter === 'motorcycle') activeBtn = filterMotorcycleBtn;
+      if (filter === 'car') activeBtn = filterCarBtn;
+      
+      activeBtn.classList.add('filter-active');
+      activeBtn.classList.remove('bg-gray-100', 'hover:bg-gray-200');
+      
+      // Re-render history (no need to fetch again)
+      renderHistory(localStorage.getItem(STORAGE_KEY));
+    }
+
     /**
      * ฟังก์ชันเมื่อบันทึกสำเร็จ
      */
     function handleSuccess(result) {
       setLoading(false);
       
-      // ไม่ต้อง JSON.parse(response) แล้ว
       if (result.status === 'success') {
         Swal.fire({
           icon: 'success',
-          title: currentEditId ? 'แก้ไขสำเร็จ!' : 'บันทึกสำเร็จ!', // <-- NEW: Dynamic Title
-          text: currentEditId ? 'ข้อมูลของคุณถูกอัปเดตแล้ว' : 'ข้อมูลถูกบันทึกลงในเบราว์เซอร์นี้แล้ว', // <-- NEW: Dynamic Text
+          title: currentEditId ? 'แก้ไขสำเร็จ!' : 'บันทึกสำเร็จ!',
+          text: currentEditId ? 'ข้อมูลของคุณถูกอัปเดตแล้ว' : 'ข้อมูลถูกบันทึกลงในเบราว์เซอร์นี้แล้ว',
           timer: 2000,
           showConfirmButton: false
         });
         
-        resetFormState(); // <-- NEW: ใช้ฟังก์ชัน reset
+        resetFormState();
         fetchHistory(); // โหลดประวัติใหม่
         
       } else {
@@ -340,12 +490,12 @@
       if (isLoading) {
         submitButton.disabled = true;
         submitButton.classList.add('bg-blue-400', 'cursor-not-allowed');
-        buttonText.textContent = currentEditId ? 'กำลังอัปเดต...' : 'กำลังบันทึก...'; // <-- NEW
+        buttonText.textContent = currentEditId ? 'กำลังอัปเดต...' : 'กำลังบันทึก...';
         loadingIcon.classList.remove('hidden');
       } else {
         submitButton.disabled = false;
         submitButton.classList.remove('bg-blue-400', 'cursor-not-allowed');
-        buttonText.textContent = currentEditId ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูล'; // <-- NEW
+        buttonText.textContent = currentEditId ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูล';
         loadingIcon.classList.add('hidden');
       }
     }
@@ -358,10 +508,18 @@
         reloadIcon.classList.add('hidden');
         historyLoadingIcon.classList.remove('hidden');
         reloadButton.disabled = true;
+        
+        reloadIconDesktop.classList.add('hidden');
+        historyLoadingIconDesktop.classList.remove('hidden');
+        reloadButtonDesktop.disabled = true;
       } else {
         reloadIcon.classList.remove('hidden');
         historyLoadingIcon.classList.add('hidden');
         reloadButton.disabled = false;
+        
+        reloadIconDesktop.classList.remove('hidden');
+        historyLoadingIconDesktop.classList.add('hidden');
+        reloadButtonDesktop.disabled = false;
       }
     }
 
@@ -382,7 +540,6 @@
          historyContainer.innerHTML = '<p class="text-center text-gray-500 py-4">กำลังโหลดข้อมูลประวัติ...</p>';
       }
       
-      // 3. เรียกฟังก์ชัน getServiceHistory ที่เราสร้างขึ้นมาใหม่
       try {
         const historyDataString = await getServiceHistory();
         renderHistory(historyDataString); // ส่ง JSON string ไปให้ renderHistory
@@ -398,8 +555,6 @@
       setHistoryLoading(false);
       historyContainer.innerHTML = ''; 
       
-      // ไม่ต้อง JSON.parse(response)
-      // แต่ต้อง parse `responseString` ที่ได้มาจาก Local Storage
       let data = JSON.parse(responseString || '[]');
 
       if (data.length === 0) {
@@ -407,37 +562,49 @@
         return;
       }
       
-      // --- START: DATA MIGRATION FIX ---
-      // ตรวจสอบข้อมูลว่ามี ID หรือไม่
-      // ถ้าไม่มี จะเติม ID ให้ และบันทึกกลับลง Local Storage
+      // --- START: DATA MIGRATION FIX (Updated) ---
+      // ตรวจสอบข้อมูลว่ามี ID หรือ vehicleType หรือไม่
       let needsSave = false;
       data = data.map(entry => {
-        if (!entry.id) {
+        const hasId = entry.hasOwnProperty('id') && entry.id;
+        const hasType = entry.hasOwnProperty('vehicleType') && entry.vehicleType;
+        
+        if (!hasId || !hasType) {
           needsSave = true;
           return {
             ...entry,
-            id: crypto.randomUUID(), // เติม ID ที่หายไป
-            timestamp: entry.timestamp ? new Date(entry.timestamp).toISOString() : new Date().toISOString() // จัดการ timestamp เก่า (ถ้ามี)
+            id: entry.id || crypto.randomUUID(), // เติม ID ที่หายไป
+            vehicleType: entry.vehicleType || 'motorcycle', // <-- NEW: ข้อมูลเก่าทั้งหมดให้เป็น motorcycle
+            timestamp: entry.timestamp ? new Date(entry.timestamp).toISOString() : new Date().toISOString()
           };
         }
         return entry;
       });
       
-      // ถ้าเรามีการเติม ID, ให้บันทึกข้อมูลที่ซ่อมแล้วกลับไป
       if (needsSave) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          console.log('Data migration completed.');
+          console.log('Data migration completed for vehicleType.');
         } catch (e) {
           console.error("Error migrating data:", e);
         }
       }
       // --- END: DATA MIGRATION FIX ---
       
+      // --- NEW: FILTER DATA ---
+      let filteredData = data;
+      if (currentFilter !== 'all') {
+        filteredData = data.filter(entry => entry.vehicleType === currentFilter);
+      }
+      
+      if (filteredData.length === 0) {
+        historyContainer.innerHTML = `<p class="text-center text-gray-500 py-4">ไม่พบข้อมูลสำหรับ "${currentFilter}"</p>`;
+        return;
+      }
+      
       // แสดงผล โดยเรียงจากใหม่สุดไปเก่าสุด
-      historyContainer.innerHTML = data.reverse().map(entry => {
-        // ข้อมูลตอนนี้เป็น object (แทนที่จะเป็น array)
-        const { id, timestamp, item, mileage, shop, notes } = entry; // <-- NEW: ดึง ID ออกมา
+      historyContainer.innerHTML = filteredData.reverse().map(entry => {
+        const { id, timestamp, vehicleType, item, mileage, shop, notes } = entry;
         
         const date = new Date(timestamp);
         
@@ -451,12 +618,13 @@
         });
 
         const formattedMileage = Number(mileage).toLocaleString('th-TH');
+        const icon = vehicleType === 'car' ? '🚗' : '🏍️';
 
         // สร้าง HTML Card
         return `
           <div class="border border-gray-200/80 rounded-lg p-4 shadow-sm bg-white transition-colors duration-150">
             <div class="flex justify-between items-start gap-2">
-              <h3 class="text-lg font-semibold text-blue-700 break-words">${item}</h3>
+              <h3 class="text-lg font-semibold text-blue-700 break-words">${icon} ${item}</h3>
               <span class="text-sm text-gray-600 whitespace-nowrap flex-shrink-0">${formattedDate} น.</span>
             </div>
             
@@ -465,7 +633,7 @@
             ${shop ? `<p class="text-sm text-gray-600 mt-1 break-words"><b>ร้าน:</b> ${shop}</p>` : ''}
             ${notes ? `<p class="text-sm text-gray-600 mt-1 break-words"><b>หมายเหตุ:</b> ${notes}</p>` : ''}
             
-            <!-- NEW: Edit/Delete Buttons -->
+            <!-- Edit/Delete Buttons -->
             <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-gray-100">
               <button onclick="showEditForm('${id}')" class="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -494,10 +662,10 @@
       `;
     }
     
-    // --- NEW HELPER FUNCTIONS ---
+    // --- CRUD HELPER FUNCTIONS ---
     
     /**
-     * NEW: ฟังก์ชันสำหรับลบข้อมูล
+     * ฟังก์ชันสำหรับลบข้อมูล
      */
     function deleteEntry(id) {
       Swal.fire({
@@ -533,7 +701,7 @@
     }
 
     /**
-     * NEW: ฟังก์ชันสำหรับแสดงข้อมูลในฟอร์มเพื่อแก้ไข
+     * ฟังก์ชันสำหรับแสดงข้อมูลในฟอร์มเพื่อแก้ไข
      */
     function showEditForm(id) {
       try {
@@ -541,10 +709,18 @@
         const entryToEdit = history.find(entry => entry.id === id);
         
         if (entryToEdit) {
-          currentEditId = id; // ตั้งค่า ID ที่กำลังแก้ไข
+          currentEditId = id;
+          
+          // --- NEW: Set vehicle type first ---
+          const vehicleType = entryToEdit.vehicleType || 'motorcycle'; // Default old data
+          currentVehicleType = vehicleType;
+          document.getElementById(vehicleType === 'car' ? 'typeCar' : 'typeMotorcycle').checked = true;
+          
+          // --- NEW: Populate correct dropdown BEFORE setting value ---
+          populateItemDropdown();
           
           // เติมข้อมูลลงในฟอร์ม
-          document.getElementById('item').value = entryToEdit.item;
+          itemSelect.value = entryToEdit.item;
           document.getElementById('mileage').value = entryToEdit.mileage;
           document.getElementById('shop').value = entryToEdit.shop;
           document.getElementById('notes').value = entryToEdit.notes;
@@ -566,11 +742,17 @@
     }
     
     /**
-     * NEW: ฟังก์ชันสำหรับรีเซ็ตฟอร์ม
+     * ฟังก์ชันสำหรับรีเซ็ตฟอร์ม
      */
     function resetFormState() {
       form.reset();
       currentEditId = null;
+      
+      // --- NEW: Reset to default vehicle type ---
+      currentVehicleType = 'motorcycle';
+      document.getElementById('typeMotorcycle').checked = true;
+      populateItemDropdown();
+      
       buttonText.textContent = 'บันทึกข้อมูล';
       submitButton.classList.remove('bg-green-600', 'hover:bg-green-700');
       submitButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
