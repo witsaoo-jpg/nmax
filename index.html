@@ -92,6 +92,13 @@
             </button>
           </div>
           
+          <!-- NEW: Cancel Edit Button (hidden by default) -->
+          <div>
+            <button type="button" id="cancelEditButton" class="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-lg font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150 ease-in-out hidden mt-3">
+              ยกเลิกการแก้ไข
+            </button>
+          </div>
+          
         </form>
       </div>
       
@@ -152,6 +159,7 @@
           
           // 2. สร้างข้อมูลใหม่
           const newEntry = {
+            id: crypto.randomUUID(), // <-- NEW: เพิ่ม Unique ID
             timestamp: new Date().toISOString(), // ใช้วันที่เวลาปัจจุบัน
             item: formData.item,
             mileage: formData.mileage,
@@ -190,6 +198,43 @@
        });
     }
     
+    /**
+     * NEW: ฟังก์ชันสำหรับอัปเดตข้อมูลใน Local Storage
+     */
+    function updateMotorcycleService(id, formData) {
+      return new Promise((resolve, reject) => {
+        try {
+          const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          
+          // 3. วนหาและอัปเดตข้อมูล
+          const updatedHistory = history.map(entry => {
+            if (entry.id === id) {
+              // ถ้าเจอ ID ที่ตรงกัน, อัปเดตข้อมูล แต่ยังคง ID และ timestamp เดิม
+              return {
+                id: entry.id,
+                timestamp: entry.timestamp,
+                item: formData.item,
+                mileage: formData.mileage,
+                shop: formData.shop,
+                notes: formData.notes
+              };
+            }
+            return entry; // คืนค่าตัวเดิมถ้า ID ไม่ตรง
+          });
+          
+          // 4. บันทึกกลับลง Local Storage
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
+          
+          // 5. ส่งสัญญาณว่าสำเร็จ
+          resolve({ status: "success", message: "อัปเดตข้อมูลเรียบร้อย!" });
+          
+        } catch (error) {
+          // 6. ส่งสัญญาณว่าล้มเหลว
+          reject({ status: "error", message: error.message });
+        }
+      });
+    }
+    
     // --- END: Local Storage Logic ---
     
     
@@ -203,10 +248,13 @@
     const historyLoadingIcon = document.getElementById('historyLoadingIcon');
     const historyContainer = document.getElementById('historyContainer');
     const historyInitialLoading = document.getElementById('historyInitialLoading');
+    const cancelEditButton = document.getElementById('cancelEditButton'); // <-- NEW
+    
+    let currentEditId = null; // <-- NEW: ตัวแปรสำหรับเก็บ ID ที่กำลังแก้ไข
 
     reloadButton.addEventListener('click', fetchHistory);
-    
     document.addEventListener('DOMContentLoaded', fetchHistory);
+    cancelEditButton.addEventListener('click', resetFormState); // <-- NEW
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault(); 
@@ -235,7 +283,14 @@
       // 3. เรียกฟังก์ชัน logMotorcycleService ที่เราสร้างขึ้นมาใหม่
       // เราใช้ async/await เพื่อให้โค้ดอ่านง่าย
       try {
-        const result = await logMotorcycleService(formData);
+        let result;
+        if (currentEditId) {
+          // --- EDIT MODE ---
+          result = await updateMotorcycleService(currentEditId, formData);
+        } else {
+          // --- NEW ENTRY MODE ---
+          result = await logMotorcycleService(formData);
+        }
         handleSuccess(result);
       } catch (error) {
         handleFailure(error);
@@ -252,13 +307,13 @@
       if (result.status === 'success') {
         Swal.fire({
           icon: 'success',
-          title: 'บันทึกสำเร็จ!',
-          text: 'ข้อมูลถูกบันทึกลงในเบราว์เซอร์นี้แล้ว',
+          title: currentEditId ? 'แก้ไขสำเร็จ!' : 'บันทึกสำเร็จ!', // <-- NEW: Dynamic Title
+          text: currentEditId ? 'ข้อมูลของคุณถูกอัปเดตแล้ว' : 'ข้อมูลถูกบันทึกลงในเบราว์เซอร์นี้แล้ว', // <-- NEW: Dynamic Text
           timer: 2000,
           showConfirmButton: false
         });
         
-        form.reset();
+        resetFormState(); // <-- NEW: ใช้ฟังก์ชัน reset
         fetchHistory(); // โหลดประวัติใหม่
         
       } else {
@@ -285,12 +340,12 @@
       if (isLoading) {
         submitButton.disabled = true;
         submitButton.classList.add('bg-blue-400', 'cursor-not-allowed');
-        buttonText.textContent = 'กำลังบันทึก...';
+        buttonText.textContent = currentEditId ? 'กำลังอัปเดต...' : 'กำลังบันทึก...'; // <-- NEW
         loadingIcon.classList.remove('hidden');
       } else {
         submitButton.disabled = false;
         submitButton.classList.remove('bg-blue-400', 'cursor-not-allowed');
-        buttonText.textContent = 'บันทึกข้อมูล';
+        buttonText.textContent = currentEditId ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูล'; // <-- NEW
         loadingIcon.classList.add('hidden');
       }
     }
@@ -355,7 +410,7 @@
       // แสดงผล โดยเรียงจากใหม่สุดไปเก่าสุด
       historyContainer.innerHTML = data.reverse().map(entry => {
         // ข้อมูลตอนนี้เป็น object (แทนที่จะเป็น array)
-        const { timestamp, item, mileage, shop, notes } = entry;
+        const { id, timestamp, item, mileage, shop, notes } = entry; // <-- NEW: ดึง ID ออกมา
         
         const date = new Date(timestamp);
         
@@ -372,7 +427,7 @@
 
         // สร้าง HTML Card
         return `
-          <div class="border border-gray-200/80 rounded-lg p-4 shadow-sm bg-white hover:bg-blue-50 transition-colors duration-150">
+          <div class="border border-gray-200/80 rounded-lg p-4 shadow-sm bg-white transition-colors duration-150">
             <div class="flex justify-between items-start gap-2">
               <h3 class="text-lg font-semibold text-blue-700 break-words">${item}</h3>
               <span class="text-sm text-gray-600 whitespace-nowrap flex-shrink-0">${formattedDate} น.</span>
@@ -382,6 +437,18 @@
             
             ${shop ? `<p class="text-sm text-gray-600 mt-1 break-words"><b>ร้าน:</b> ${shop}</p>` : ''}
             ${notes ? `<p class="text-sm text-gray-600 mt-1 break-words"><b>หมายเหตุ:</b> ${notes}</p>` : ''}
+            
+            <!-- NEW: Edit/Delete Buttons -->
+            <div class="flex justify-end gap-3 mt-4 pt-3 border-t border-gray-100">
+              <button onclick="showEditForm('${id}')" class="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                แก้ไข
+              </button>
+              <button onclick="deleteEntry('${id}')" class="flex items-center text-sm font-medium text-red-600 hover:text-red-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                ลบ
+              </button>
+            </div>
           </div>
         `;
       }).join('');
@@ -398,6 +465,89 @@
           <p class="text-sm">${error.message}</p>
         </div>
       `;
+    }
+    
+    // --- NEW HELPER FUNCTIONS ---
+    
+    /**
+     * NEW: ฟังก์ชันสำหรับลบข้อมูล
+     */
+    function deleteEntry(id) {
+      Swal.fire({
+        title: 'คุณแน่ใจหรือไม่?',
+        text: "คุณจะไม่สามารถกู้คืนข้อมูลนี้ได้!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ใช่, ลบเลย!',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          try {
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const updatedHistory = history.filter(entry => entry.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
+            
+            Swal.fire(
+              'ลบแล้ว!',
+              'รายการของคุณถูกลบเรียบร้อย',
+              'success'
+            );
+            
+            fetchHistory(); // โหลดประวัติใหม่
+            resetFormState(); // เผื่อกำลังแก้ไขรายการที่เพิ่งลบ
+          
+          } catch (error) {
+            handleFailure(error);
+          }
+        }
+      });
+    }
+
+    /**
+     * NEW: ฟังก์ชันสำหรับแสดงข้อมูลในฟอร์มเพื่อแก้ไข
+     */
+    function showEditForm(id) {
+      try {
+        const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const entryToEdit = history.find(entry => entry.id === id);
+        
+        if (entryToEdit) {
+          currentEditId = id; // ตั้งค่า ID ที่กำลังแก้ไข
+          
+          // เติมข้อมูลลงในฟอร์ม
+          document.getElementById('item').value = entryToEdit.item;
+          document.getElementById('mileage').value = entryToEdit.mileage;
+          document.getElementById('shop').value = entryToEdit.shop;
+          document.getElementById('notes').value = entryToEdit.notes;
+          
+          // เปลี่ยนปุ่ม
+          buttonText.textContent = 'บันทึกการแก้ไข';
+          submitButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+          submitButton.classList.add('bg-green-600', 'hover:bg-green-700'); // เปลี่ยนเป็นสีเขียว
+          cancelEditButton.classList.remove('hidden'); // แสดงปุ่มยกเลิก
+          
+          // เลื่อนจอขึ้นไปที่ฟอร์ม
+          form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          throw new Error('ไม่พบรายการที่ต้องการแก้ไข');
+        }
+      } catch (error) {
+         handleFailure(error);
+      }
+    }
+    
+    /**
+     * NEW: ฟังก์ชันสำหรับรีเซ็ตฟอร์ม
+     */
+    function resetFormState() {
+      form.reset();
+      currentEditId = null;
+      buttonText.textContent = 'บันทึกข้อมูล';
+      submitButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+      submitButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+      cancelEditButton.classList.add('hidden');
     }
     
   </script>
