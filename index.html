@@ -400,12 +400,39 @@
       
       // ไม่ต้อง JSON.parse(response)
       // แต่ต้อง parse `responseString` ที่ได้มาจาก Local Storage
-      const data = JSON.parse(responseString || '[]');
+      let data = JSON.parse(responseString || '[]');
 
       if (data.length === 0) {
         historyContainer.innerHTML = '<p class="text-center text-gray-500 py-4">ยังไม่มีข้อมูลการบำรุงรักษา</p>';
         return;
       }
+      
+      // --- START: DATA MIGRATION FIX ---
+      // ตรวจสอบข้อมูลว่ามี ID หรือไม่
+      // ถ้าไม่มี จะเติม ID ให้ และบันทึกกลับลง Local Storage
+      let needsSave = false;
+      data = data.map(entry => {
+        if (!entry.id) {
+          needsSave = true;
+          return {
+            ...entry,
+            id: crypto.randomUUID(), // เติม ID ที่หายไป
+            timestamp: entry.timestamp ? new Date(entry.timestamp).toISOString() : new Date().toISOString() // จัดการ timestamp เก่า (ถ้ามี)
+          };
+        }
+        return entry;
+      });
+      
+      // ถ้าเรามีการเติม ID, ให้บันทึกข้อมูลที่ซ่อมแล้วกลับไป
+      if (needsSave) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          console.log('Data migration completed.');
+        } catch (e) {
+          console.error("Error migrating data:", e);
+        }
+      }
+      // --- END: DATA MIGRATION FIX ---
       
       // แสดงผล โดยเรียงจากใหม่สุดไปเก่าสุด
       historyContainer.innerHTML = data.reverse().map(entry => {
