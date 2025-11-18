@@ -73,6 +73,12 @@
             </select>
           </div>
           
+          <!-- NEW: Date Time -->
+          <div>
+            <label for="serviceDate" class="block text-sm font-medium text-gray-700">วันที่และเวลาที่ Service</label>
+            <input type="datetime-local" id="serviceDate" name="serviceDate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 p-3 bg-white/50">
+          </div>
+          
           <!-- เลขไมล์ -->
           <div>
             <label for="mileage" class="block text-sm font-medium text-gray-700">เลขไมล์ (กม.)</label>
@@ -197,7 +203,7 @@
           // 2. สร้างข้อมูลใหม่
           const newEntry = {
             id: crypto.randomUUID(),
-            timestamp: new Date().toISOString(),
+            timestamp: new Date(formData.serviceDate).toISOString(), // <-- UPDATED
             vehicleType: formData.vehicleType, // <-- NEW
             item: formData.item,
             mileage: formData.mileage,
@@ -250,7 +256,7 @@
               // ถ้าเจอ ID ที่ตรงกัน, อัปเดตข้อมูล แต่ยังคง ID และ timestamp เดิม
               return {
                 id: entry.id,
-                timestamp: entry.timestamp,
+                timestamp: new Date(formData.serviceDate).toISOString(), // <-- UPDATED
                 vehicleType: formData.vehicleType, // <-- NEW
                 item: formData.item,
                 mileage: formData.mileage,
@@ -295,8 +301,6 @@
         'กรองน้ำมันเครื่อง',
         'ไส้กรองอากาศ',
         'กรองแอร์',
-        'กรองCNG',
-        'ล้างหัวฉีดCNG',
         'แบตเตอรี่',
         'ผ้าเบรค',
         'ยางรถยนต์',
@@ -339,6 +343,7 @@
     
     // --- Event Listeners ---
     document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('serviceDate').value = new Date(Date.now() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16); // <-- NEW
       populateItemDropdown();
       fetchHistory();
     });
@@ -360,12 +365,13 @@
       
       const item = itemSelect.value;
       const mileage = document.getElementById('mileage').value;
+      const serviceDate = document.getElementById('serviceDate').value; // <-- NEW
       
-      if (!item || !mileage) {
+      if (!item || !mileage || !serviceDate) { // <-- UPDATED
         Swal.fire({
           icon: 'warning',
           title: 'ข้อมูลไม่ครบ',
-          text: 'กรุณาเลือก "รายการ" และกรอก "เลขไมล์"ด้วยครับ',
+          text: 'กรุณากรอก "วันที่", "รายการ" และ "เลขไมล์" ด้วยครับ', // <-- UPDATED
         });
         return;
       }
@@ -374,6 +380,7 @@
 
       const formData = {
         vehicleType: currentVehicleType, // <-- NEW
+        serviceDate: serviceDate, // <-- NEW
         item: item,
         mileage: mileage,
         shop: document.getElementById('shop').value,
@@ -721,6 +728,15 @@
           // --- NEW: Populate correct dropdown BEFORE setting value ---
           populateItemDropdown();
           
+          // --- NEW: Format and set datetime-local value ---
+          // 1. Get the saved ISO string timestamp
+          const savedTimestamp = entryToEdit.timestamp;
+          // 2. Convert to Date object, then to a "local" ISO string by slicing
+          // We need YYYY-MM-DDTHH:mm
+          const date = new Date(savedTimestamp);
+          const localISOTime = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+          document.getElementById('serviceDate').value = localISOTime;
+          
           // เติมข้อมูลลงในฟอร์ม
           itemSelect.value = entryToEdit.item;
           document.getElementById('mileage').value = entryToEdit.mileage;
@@ -749,6 +765,9 @@
     function resetFormState() {
       form.reset();
       currentEditId = null;
+      
+      // --- NEW: Reset serviceDate to current time ---
+      document.getElementById('serviceDate').value = new Date(Date.now() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
       
       // --- NEW: Reset to default vehicle type ---
       currentVehicleType = 'motorcycle';
