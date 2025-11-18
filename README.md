@@ -1,0 +1,2 @@
+# nmax
+namx
