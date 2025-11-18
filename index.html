@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- ใช้ <base target="_top"> เพื่อให้ฟอร์มทำงานถูกต้องใน Google App Script -->
-  <base target="_top">
+  <!-- 
+    เราลบ <base target="_top"> ออก เพราะไม่ได้รันบน Google App Script แล้ว 
+  -->
   
   <!-- 1. Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,7 +13,7 @@
   <!-- 2. SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
-  <title>บันทึก Service มอเตอร์ไซต์</title>
+  <title>บันทึก Service มอเตอร์ไซต์ (Local)</title>
   
   <style>
     /* เพิ่ม Font ภาษาไทยที่ดูดี */
@@ -22,18 +23,18 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
+<body class="bg-gradient-to-br from-blue-50 via-white to-gray-100 min-h-screen flex flex-col justify-between">
 
   <!-- Main Content -->
   <main class="flex-grow">
-    <div class="container mx-auto max-w-lg p-6">
+    <div class="container mx-auto max-w-lg p-4 sm:p-6 w-full">
       
       <!-- Card -->
-      <div class="bg-white rounded-xl shadow-2xl p-8 mt-10">
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200/50 p-6 sm:p-8 mt-8 sm:mt-10">
         
         <!-- Header -->
         <div class="text-center mb-8">
-          <svg class="mx-auto h-12 w-auto text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <svg class="mx-auto h-12 w-auto text-blue-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
           </svg>
           <h1 class="text-3xl font-bold text-gray-900 mt-2">บันทึก Service</h1>
@@ -46,7 +47,7 @@
           <!-- รายการ -->
           <div>
             <label for="item" class="block text-sm font-medium text-gray-700">รายการบำรุงรักษา</label>
-            <select id="item" name="item" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+            <select id="item" name="item" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 p-3 bg-white/50">
               <option value="" disabled selected>-- เลือกรายการ --</option>
               <option value="น้ำมันเครื่อง">น้ำมันเครื่อง</option>
               <option value="น้ำมันเฟืองท้าย">น้ำมันเฟืองท้าย</option>
@@ -64,24 +65,24 @@
           <!-- เลขไมล์ -->
           <div>
             <label for="mileage" class="block text-sm font-medium text-gray-700">เลขไมล์ (กม.)</label>
-            <input type="number" id="mileage" name="mileage" required placeholder="เช่น 15000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+            <input type="number" id="mileage" name="mileage" required placeholder="เช่น 15000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 p-3 bg-white/50">
           </div>
           
           <!-- ร้านรถ -->
           <div>
             <label for="shop" class="block text-sm font-medium text-gray-700">ร้านที่ทำ (ถ้ามี)</label>
-            <input type="text" id="shop" name="shop" placeholder="เช่น ร้านช่าง A ใกล้บ้าน" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3">
+            <input type="text" id="shop" name="shop" placeholder="เช่น ร้านช่าง A ใกล้บ้าน" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 p-3 bg-white/50">
           </div>
           
           <!-- หมายเหตุ -->
           <div>
             <label for="notes" class="block text-sm font-medium text-gray-700">หมายเหตุ (ถ้ามี)</label>
-            <textarea id="notes" name="notes" rows="3" placeholder="เช่น เปลี่ยนน้ำมันเครื่องยี่ห้อ..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3"></textarea>
+            <textarea id="notes" name="notes" rows="3" placeholder="เช่น เปลี่ยนน้ำมันเครื่องยี่ห้อ..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 p-3 bg-white/50"></textarea>
           </div>
           
           <!-- ปุ่ม Submit -->
           <div>
-            <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+            <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-150 ease-in-out transform hover:-translate-y-0.5 active:scale-95">
               <!-- ไอคอน loading (ซ่อนไว้ก่อน) -->
               <svg id="loadingIcon" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -95,8 +96,8 @@
       </div>
       
       <!-- 
-        *** NEW SECTION: History Report *** -->
-      <div class="bg-white rounded-xl shadow-2xl p-8 mt-10 mb-10">
+        *** SECTION: History Report *** -->
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200/50 p-6 sm:p-8 mt-10 mb-10">
         
         <!-- History Header -->
         <div class="flex justify-between items-center mb-6">
@@ -133,30 +134,83 @@
   </footer>
   
   
-  <!-- JavaScript สำหรับ Form -->
+    <!-- JavaScript สำหรับ Form -->
   <script>
+    // --- START: Local Storage Logic ---
+    
+    // ตั้งชื่อ Key สำหรับ Local Storage
+    const STORAGE_KEY = 'motorcycleHistory';
+
+    /**
+     * ฟังก์ชันสำหรับบันทึกข้อมูลลง Local Storage
+     */
+    function logMotorcycleService(formData) {
+      return new Promise((resolve, reject) => {
+        try {
+          // 1. ดึงข้อมูลเก่า (ถ้ามี)
+          const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          
+          // 2. สร้างข้อมูลใหม่
+          const newEntry = {
+            timestamp: new Date().toISOString(), // ใช้วันที่เวลาปัจจุบัน
+            item: formData.item,
+            mileage: formData.mileage,
+            shop: formData.shop,
+            notes: formData.notes
+          };
+          
+          // 3. เพิ่มข้อมูลใหม่
+          history.push(newEntry);
+          
+          // 4. บันทึกกลับลง Local Storage
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+          
+          // 5. ส่งสัญญาณว่าสำเร็จ
+          resolve({ status: "success", message: "บันทึกข้อมูลเรียบร้อย!" });
+          
+        } catch (error) {
+          // 6. ส่งสัญญาณว่าล้มเหลว
+          reject({ status: "error", message: error.message });
+        }
+      });
+    }
+
+    /**
+     * ฟังก์ชันสำหรับดึงข้อมูลประวัติจาก Local Storage
+     */
+    function getServiceHistory() {
+       return new Promise((resolve, reject) => {
+        try {
+          const historyData = localStorage.getItem(STORAGE_KEY);
+          // ส่งข้อมูล (ที่เป็น JSON string) กลับไปให้ renderHistory
+          resolve(historyData); 
+        } catch (error) {
+          reject({ message: error.message });
+        }
+       });
+    }
+    
+    // --- END: Local Storage Logic ---
+    
+    
     const form = document.getElementById('serviceForm');
     const submitButton = document.getElementById('submitButton');
     const buttonText = document.getElementById('buttonText');
     const loadingIcon = document.getElementById('loadingIcon');
     
-    // *** NEW: History Elements ***
     const reloadButton = document.getElementById('reloadButton');
     const reloadIcon = document.getElementById('reloadIcon');
     const historyLoadingIcon = document.getElementById('historyLoadingIcon');
     const historyContainer = document.getElementById('historyContainer');
     const historyInitialLoading = document.getElementById('historyInitialLoading');
 
-    // *** NEW: Event listener for reload button ***
     reloadButton.addEventListener('click', fetchHistory);
     
-    // *** NEW: Load history when page loads ***
     document.addEventListener('DOMContentLoaded', fetchHistory);
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault(); // ป้องกันการ submit แบบปกติ
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault(); 
       
-      // ตรวจสอบฟอร์ม (ง่ายๆ)
       const item = document.getElementById('item').value;
       const mileage = document.getElementById('mileage').value;
       
@@ -164,15 +218,13 @@
         Swal.fire({
           icon: 'warning',
           title: 'ข้อมูลไม่ครบ',
-          text: 'กรุณาเลือก "รายการ" และกรอก "เลขไมล์" ด้วยครับ',
+          text: 'กรุณาเลือก "รายการ" และกรอก "เลขไมล์"ด้วยครับ',
         });
         return;
       }
 
-      // แสดงสถานะกำลังโหลด
       setLoading(true);
 
-      // รวบรวมข้อมูลจากฟอร์ม
       const formData = {
         item: item,
         mileage: mileage,
@@ -180,37 +232,36 @@
         notes: document.getElementById('notes').value,
       };
 
-      // 3. ใช้ google.script.run
-      google.script.run
-        .withSuccessHandler(handleSuccess)
-        .withFailureHandler(handleFailure)
-        .logMotorcycleService(formData); // เรียกฟังก์ชันใน Code.gs
+      // 3. เรียกฟังก์ชัน logMotorcycleService ที่เราสร้างขึ้นมาใหม่
+      // เราใช้ async/await เพื่อให้โค้ดอ่านง่าย
+      try {
+        const result = await logMotorcycleService(formData);
+        handleSuccess(result);
+      } catch (error) {
+        handleFailure(error);
+      }
     });
 
     /**
      * ฟังก์ชันเมื่อบันทึกสำเร็จ
      */
-    function handleSuccess(response) {
+    function handleSuccess(result) {
       setLoading(false);
-      const result = JSON.parse(response);
       
+      // ไม่ต้อง JSON.parse(response) แล้ว
       if (result.status === 'success') {
         Swal.fire({
           icon: 'success',
           title: 'บันทึกสำเร็จ!',
-          text: 'ข้อมูลถูกบันทึกลง Google Sheet แล้ว',
+          text: 'ข้อมูลถูกบันทึกลงในเบราว์เซอร์นี้แล้ว',
           timer: 2000,
           showConfirmButton: false
         });
         
-        // ล้างฟอร์ม
         form.reset();
-        
-        // *** NEW: Refresh history list ***
-        fetchHistory();
+        fetchHistory(); // โหลดประวัติใหม่
         
       } else {
-        // กรณี Error ที่ถูกจับได้โดย try...catch ใน GAS
         handleFailure({ message: result.message });
       }
     }
@@ -244,10 +295,6 @@
       }
     }
     
-    // 
-    // *** NEW FUNCTIONS FOR HISTORY REPORT ***
-    //
-    
     /**
      * ฟังก์ชัน: ตั้งค่าสถานะ Loading-History
      */
@@ -266,57 +313,52 @@
     /**
      * ฟังก์ชัน: เรียกดึงข้อมูลประวัติ
      */
-    function fetchHistory() {
+    async function fetchHistory() {
       setHistoryLoading(true);
       
       const loadingDiv = document.getElementById('historyInitialLoading');
       
-      // เคลียร์ข้อมูลเก่าและแสดงสถานะโหลด
       historyContainer.innerHTML = '';
       if (loadingDiv) {
         loadingDiv.classList.remove('hidden');
         loadingDiv.textContent = 'กำลังโหลดข้อมูลประวัติ...';
         historyContainer.appendChild(loadingDiv);
       } else {
-        // Fallback ถ้า element หายไป
          historyContainer.innerHTML = '<p class="text-center text-gray-500 py-4">กำลังโหลดข้อมูลประวัติ...</p>';
       }
       
-      google.script.run
-        .withSuccessHandler(renderHistory)
-        .withFailureHandler(handleHistoryFailure)
-        .getServiceHistory(); // เรียกฟังก์ชันใหม่ใน Code.gs
+      // 3. เรียกฟังก์ชัน getServiceHistory ที่เราสร้างขึ้นมาใหม่
+      try {
+        const historyDataString = await getServiceHistory();
+        renderHistory(historyDataString); // ส่ง JSON string ไปให้ renderHistory
+      } catch (error) {
+        handleHistoryFailure(error);
+      }
     }
     
     /**
      * ฟังก์ชัน: แสดงผลข้อมูลประวัติที่ดึงมา
      */
-    function renderHistory(response) {
+    function renderHistory(responseString) {
       setHistoryLoading(false);
-      historyContainer.innerHTML = ''; // เคลียร์สถานะ "กำลังโหลด..."
+      historyContainer.innerHTML = ''; 
       
-      const result = JSON.parse(response);
+      // ไม่ต้อง JSON.parse(response)
+      // แต่ต้อง parse `responseString` ที่ได้มาจาก Local Storage
+      const data = JSON.parse(responseString || '[]');
 
-      if (result.status !== 'success') {
-        handleHistoryFailure({ message: result.message });
-        return;
-      }
-
-      const data = result.data;
-      
       if (data.length === 0) {
         historyContainer.innerHTML = '<p class="text-center text-gray-500 py-4">ยังไม่มีข้อมูลการบำรุงรักษา</p>';
         return;
       }
       
       // แสดงผล โดยเรียงจากใหม่สุดไปเก่าสุด
-      historyContainer.innerHTML = data.reverse().map(row => {
-        const [timestamp, item, mileage, shop, notes] = row;
+      historyContainer.innerHTML = data.reverse().map(entry => {
+        // ข้อมูลตอนนี้เป็น object (แทนที่จะเป็น array)
+        const { timestamp, item, mileage, shop, notes } = entry;
         
-        // แปลง ISO string (row[0]) เป็น Date object
         const date = new Date(timestamp);
         
-        // จัดรูปแบบวันที่และเวลาไทย
         const formattedDate = date.toLocaleDateString('th-TH', {
           day: 'numeric',
           month: 'short',
@@ -326,12 +368,11 @@
           hour12: false
         });
 
-        // จัดรูปแบบเลขไมล์
-        const formattedMileage = Number(mileage).toLocaleString('th-TH'); // เปลี่ยนเป็น th-TH
+        const formattedMileage = Number(mileage).toLocaleString('th-TH');
 
-        // สร้าง HTML Card สำหรับแต่ละรายการ
+        // สร้าง HTML Card
         return `
-          <div class="border border-gray-200 rounded-lg p-4 shadow-sm bg-white hover:bg-gray-50 transition-colors duration-150">
+          <div class="border border-gray-200/80 rounded-lg p-4 shadow-sm bg-white hover:bg-blue-50 transition-colors duration-150">
             <div class="flex justify-between items-start gap-2">
               <h3 class="text-lg font-semibold text-blue-700 break-words">${item}</h3>
               <span class="text-sm text-gray-600 whitespace-nowrap flex-shrink-0">${formattedDate} น.</span>
